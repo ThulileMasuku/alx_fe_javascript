@@ -8,12 +8,11 @@ window.onload = async function () {
   const storedQuotes = localStorage.getItem("quotes");
   if (storedQuotes) quotes = JSON.parse(storedQuotes);
 
-  // Build UI dynamically
+  // Build dynamic UI
   createAddQuoteForm();
   createFilterDropdown();
   createQuoteContainer();
   createRandomQuoteButton();
-  createImportExportControls();
 
   displayQuotes();
   populateCategories();
@@ -21,6 +20,10 @@ window.onload = async function () {
   // Restore last viewed quote from sessionStorage
   const lastViewed = sessionStorage.getItem("lastViewed");
   if (lastViewed) alert("Last viewed quote: " + lastViewed);
+
+  // Bind Export / Import buttons
+  document.getElementById("exportBtn").addEventListener("click", exportToJsonFile);
+  document.getElementById("importFile").addEventListener("change", importFromJsonFile);
 
   // Start server sync
   setInterval(syncQuotes, 10000);
@@ -90,26 +93,6 @@ function createRandomQuoteButton() {
   btn.textContent = "Show Random Quote";
   btn.addEventListener("click", showRandomQuote);
   container.appendChild(btn);
-}
-
-function createImportExportControls() {
-  const container = document.getElementById("appContainer");
-
-  const h2 = document.createElement("h2");
-  h2.textContent = "Import / Export";
-  container.appendChild(h2);
-
-  const exportBtn = document.createElement("button");
-  exportBtn.textContent = "Export Quotes";
-  exportBtn.addEventListener("click", exportToJsonFile);
-
-  const importInput = document.createElement("input");
-  importInput.type = "file";
-  importInput.accept = ".json";
-  importInput.addEventListener("change", importFromJsonFile);
-
-  container.appendChild(exportBtn);
-  container.appendChild(importInput);
 }
 
 // --------------------
