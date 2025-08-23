@@ -17,6 +17,14 @@ window.onload = async function () {
   displayQuotes();
   populateCategories();
 
+  // Restore last selected category filter
+  const lastFilter = localStorage.getItem("lastSelectedCategory");
+  if (lastFilter) {
+    const select = document.getElementById("categoryFilter");
+    select.value = lastFilter;
+    filterQuotes();
+  }
+
   // Restore last viewed quote from sessionStorage
   const lastViewed = sessionStorage.getItem("lastViewed");
   if (lastViewed) alert("Last viewed quote: " + lastViewed);
@@ -25,7 +33,7 @@ window.onload = async function () {
   document.getElementById("exportBtn").addEventListener("click", exportToJsonFile);
   document.getElementById("importFile").addEventListener("change", importFromJsonFile);
 
-  // Start server sync
+  // Start server sync every 10 seconds
   setInterval(syncQuotes, 10000);
 };
 
@@ -131,7 +139,8 @@ function addQuote() {
 
   saveQuotes();         // Persist to localStorage
   displayQuotes();      // Update DOM
-  populateCategories(); // Update category dropdown
+  populateCategories(); // Update dropdown to include new category
+  filterQuotes();       // Apply current filter if any
   syncQuoteToServer(newQuote);
 
   quoteInput.value = "";
@@ -139,13 +148,19 @@ function addQuote() {
 }
 
 function filterQuotes() {
-  const selectedCategory = document.getElementById("categoryFilter").value;
+  const select = document.getElementById("categoryFilter");
+  const selectedCategory = select.value;
+
+  // Save last selected filter
+  localStorage.setItem("lastSelectedCategory", selectedCategory);
+
   const filtered = selectedCategory ? quotes.filter(q => q.category === selectedCategory) : quotes;
   displayQuotes(filtered);
 }
 
 function populateCategories() {
   const select = document.getElementById("categoryFilter");
+  const currentValue = select.value; // preserve current selection
   select.innerHTML = "<option value=''>All Categories</option>";
 
   const categories = [...new Set(quotes.map(q => q.category))];
@@ -155,6 +170,9 @@ function populateCategories() {
     option.textContent = cat;
     select.appendChild(option);
   });
+
+  // Restore previous selection if it exists
+  if (currentValue) select.value = currentValue;
 }
 
 function showRandomQuote() {
@@ -188,6 +206,7 @@ function importFromJsonFile(event) {
       saveQuotes();        // Persist imported quotes
       displayQuotes();     // Update DOM
       populateCategories();// Update dropdown
+      filterQuotes();      // Apply current filter
       alert("Quotes imported successfully!");
     } catch {
       alert("Error reading JSON file.");
