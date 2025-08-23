@@ -1,49 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dynamic Quote Generator</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    h1, h2 { color: #333; }
-    #quoteContainer div { margin-bottom: 10px; cursor: pointer; padding: 5px; border-bottom: 1px solid #ccc; }
-    #quoteContainer div:hover { background-color: #f0f0f0; }
-    input, select, button { margin: 5px 0; padding: 5px; }
-    button { cursor: pointer; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f9f9f9;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    input, select, button {
+      padding: 8px;
+      margin: 5px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      background: #007bff;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    #quoteContainer div {
+      background: #f0f0f0;
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #quoteContainer div:hover {
+      background: #ddd;
+    }
   </style>
 </head>
 <body>
   <h1>Dynamic Quote Generator</h1>
+  <div class="container">
 
-  <!-- Add Quote Form -->
-  <div>
+    <!-- Add Quote Section -->
+    <h2>Add a New Quote</h2>
     <input type="text" id="quoteInput" placeholder="Enter a quote" />
     <input type="text" id="categoryInput" placeholder="Enter category" />
     <button onclick="addQuote()">Add Quote</button>
-  </div>
 
-  <!-- Category Filter -->
-  <div>
+    <!-- Filter Section -->
+    <h2>Filter Quotes</h2>
     <label for="categoryFilter">Filter by category:</label>
     <select id="categoryFilter" onchange="filterQuote()"></select>
-  </div>
 
-  <!-- Random Quote Button -->
-  <div>
+    <!-- Quote Display -->
+    <h2>Quotes</h2>
+    <div id="quoteContainer"></div>
+
+    <!-- Random Quote -->
     <button onclick="showRandomQuote()">Show Random Quote</button>
-  </div>
 
-  <!-- Import/Export -->
-  <div>
+    <!-- Import / Export -->
+    <h2>Import / Export</h2>
     <button onclick="exportToJsonFile()">Export Quotes</button>
     <input type="file" id="importFile" accept=".json" onchange="importFromJsonFile(event)" />
   </div>
 
-  <!-- Quotes Section -->
-  <h2>Quotes</h2>
-  <div id="quoteContainer"></div>
-
-  <!-- Link external JS -->
   <script src="script.js"></script>
 </body>
 </html>

@@ -1,19 +1,21 @@
 let quotes = [];
+let serverQuotes = [
+  { id: 1, text: "Stay hungry, stay foolish.", category: "Motivation", updatedAt: Date.now() },
+  { id: 2, text: "Knowledge is power.", category: "Wisdom", updatedAt: Date.now() }
+];
 
-// Load quotes from localStorage when app starts
+// Load quotes from localStorage on startup
 window.onload = function () {
   const storedQuotes = localStorage.getItem("quotes");
   if (storedQuotes) {
     quotes = JSON.parse(storedQuotes);
+  } else {
+    quotes = [...serverQuotes]; // first load from server
+    saveQuotes();
   }
   quoteDisplay();
   populateCategories();
-
-  // Example of sessionStorage usage
-  const lastViewed = sessionStorage.getItem("lastViewed");
-  if (lastViewed) {
-    console.log("Last viewed quote:", lastViewed);
-  }
+  startSync(); // begin syncing every 10s
 };
 
 // Save quotes array to localStorage
@@ -30,7 +32,6 @@ function quoteDisplay(filteredList = quotes) {
     const div = document.createElement("div");
     div.textContent = `${quote.text} (${quote.category})`;
 
-    // Save last viewed quote in sessionStorage when clicked
     div.onclick = function () {
       sessionStorage.setItem("lastViewed", quote.text);
       alert("You clicked: " + quote.text);
@@ -51,7 +52,7 @@ function filterQuote() {
   }
 }
 
-// ✅ Show a random quote (uses Math.random)
+// ✅ Show a random quote
 function showRandomQuote() {
   if (quotes.length === 0) {
     alert("No quotes available!");
@@ -62,7 +63,7 @@ function showRandomQuote() {
   alert(`Random Quote: ${randomQuote.text} (${randomQuote.category})`);
 }
 
-// Add a new quote
+// Add a new quote (send to local + server)
 function addQuote() {
   const input = document.getElementById("quoteInput");
   const categoryInput = document.getElementById("categoryInput");
@@ -71,7 +72,14 @@ function addQuote() {
   const category = categoryInput.value.trim() || "General";
 
   if (newQuote) {
-    quotes.push({ text: newQuote, category });
+    const newObj = { 
+      id: Date.now(), 
+      text: newQuote, 
+      category, 
+      updatedAt: Date.now() 
+    };
+    quotes.push(newObj);
+    serverQuotes.push(newObj); // simulate sending to server
     saveQuotes();
     quoteDisplay();
     populateCategories();
@@ -132,4 +140,36 @@ function populateCategories() {
     option.textContent = cat;
     categoryFilter.appendChild(option);
   });
+}
+
+// ✅ Sync Logic
+function startSync() {
+  setInterval(syncWithServer, 10000); // every 10s
+}
+
+function syncWithServer() {
+  console.log("🔄 Syncing with server...");
+
+  let conflicts = [];
+
+  serverQuotes.forEach(serverQuote => {
+    const localQuote = quotes.find(q => q.id === serverQuote.id);
+
+    if (!localQuote) {
+      // new quote from server
+      quotes.push(serverQuote);
+    } else if (serverQuote.updatedAt > localQuote.updatedAt) {
+      // conflict: server is newer
+      conflicts.push(serverQuote.text);
+      Object.assign(localQuote, serverQuote);
+    }
+  });
+
+  saveQuotes();
+  quoteDisplay();
+  populateCategories();
+
+  if (conflicts.length > 0) {
+    alert("⚠️ Conflict detected. Server data used for: " + conflicts.join(", "));
+  }
 }
