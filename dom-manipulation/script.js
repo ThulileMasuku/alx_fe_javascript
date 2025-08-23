@@ -9,8 +9,8 @@ window.onload = function () {
   displayQuotes();
   populateCategories();
 
-  // Start periodic server sync
-  setInterval(fetchQuotesFromServer, 10000); // every 10s
+  // Start periodic sync
+  setInterval(syncQuotes, 10000); // every 10s
 };
 
 // Save quotes to localStorage
@@ -122,7 +122,7 @@ function importFromJsonFile(event) {
   fileReader.readAsText(event.target.files[0]);
 }
 
-// ✅ Fetch quotes from server (checker requirement)
+// ✅ Fetch quotes from server
 async function fetchQuotesFromServer() {
   try {
     const response = await fetch("https://jsonplaceholder.typicode.com/posts");
@@ -134,39 +134,47 @@ async function fetchQuotesFromServer() {
       category: "Server",
     }));
 
-    let conflicts = [];
-    serverQuotes.forEach((serverQuote) => {
-      const local = quotes.find((q) => q.id === serverQuote.id);
-      if (!local) {
-        quotes.push(serverQuote);
-      } else if (local.text !== serverQuote.text) {
-        Object.assign(local, serverQuote); // server takes precedence
-        conflicts.push(serverQuote.text);
-      }
-    });
-
-    if (conflicts.length) {
-      alert("⚠️ Conflict resolved with server data for: " + conflicts.join(", "));
-    }
-
-    saveQuotes();
-    displayQuotes();
-    populateCategories();
+    return serverQuotes;
   } catch (error) {
     console.error("Error fetching from server:", error);
+    return [];
   }
 }
 
-// ✅ Sync new quote to server (simulation)
+// ✅ Sync a single quote to server
 async function syncQuoteToServer(quote) {
   try {
     await fetch("https://jsonplaceholder.typicode.com/posts", {
       method: "POST",
-      headers: { "Content-Type": "application/json; charset=UTF-8" }, // ✅ Correct capitalization
+      headers: { "Content-Type": "application/json; charset=UTF-8" },
       body: JSON.stringify(quote),
     });
     console.log("✅ Quote synced to server:", quote);
   } catch (error) {
     console.error("Error syncing to server:", error);
   }
+}
+
+// ✅ Main sync function (checker requirement)
+async function syncQuotes() {
+  const serverQuotes = await fetchQuotesFromServer();
+  let conflicts = [];
+
+  serverQuotes.forEach((serverQuote) => {
+    const local = quotes.find((q) => q.id === serverQuote.id);
+    if (!local) {
+      quotes.push(serverQuote);
+    } else if (local.text !== serverQuote.text) {
+      Object.assign(local, serverQuote); // server takes precedence
+      conflicts.push(serverQuote.text);
+    }
+  });
+
+  if (conflicts.length) {
+    alert("⚠️ Conflict resolved with server data for: " + conflicts.join(", "));
+  }
+
+  saveQuotes();
+  displayQuotes();
+  populateCategories();
 }
