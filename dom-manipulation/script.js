@@ -19,11 +19,11 @@ function saveQuotes() {
 }
 
 // Display quotes
-function displayQuotes() {
+function displayQuotes(filteredList = quotes) {
   const container = document.getElementById("quoteContainer");
   container.innerHTML = "";
 
-  quotes.map((quote) => {
+  filteredList.map((quote) => {
     const div = document.createElement("div");
     div.textContent = `${quote.text} (${quote.category})`;
     div.onclick = () => {
@@ -43,11 +43,12 @@ function addQuote() {
   const category = categoryInput.value.trim() || "General";
 
   if (newQuote) {
-    quotes.push({ text: newQuote, category, id: Date.now() });
+    const quoteObj = { text: newQuote, category, id: Date.now() };
+    quotes.push(quoteObj);
     saveQuotes();
     displayQuotes();
     populateCategories();
-    syncQuoteToServer({ text: newQuote, category, id: Date.now() });
+    syncQuoteToServer(quoteObj); // send to server
     input.value = "";
     categoryInput.value = "";
   } else {
@@ -58,16 +59,10 @@ function addQuote() {
 // Filter quotes by category
 function filterQuote() {
   const selectedCategory = document.getElementById("categoryFilter").value;
-  const container = document.getElementById("quoteContainer");
-  container.innerHTML = "";
-
-  quotes
-    .filter((q) => !selectedCategory || q.category === selectedCategory)
-    .map((quote) => {
-      const div = document.createElement("div");
-      div.textContent = `${quote.text} (${quote.category})`;
-      container.appendChild(div);
-    });
+  const filtered = selectedCategory
+    ? quotes.filter((q) => q.category === selectedCategory)
+    : quotes;
+  displayQuotes(filtered);
 }
 
 // Populate categories dynamically
@@ -76,7 +71,6 @@ function populateCategories() {
   categoryFilter.innerHTML = "<option value=''>All</option>";
 
   const categories = [...new Set(quotes.map((q) => q.category))];
-
   categories.forEach((cat) => {
     const option = document.createElement("option");
     option.value = cat;
@@ -93,7 +87,7 @@ function showRandomQuote() {
   alert(`Random Quote: ${quote.text} (${quote.category})`);
 }
 
-// Export quotes
+// Export quotes as JSON
 function exportToJsonFile() {
   const dataStr = JSON.stringify(quotes, null, 2);
   const blob = new Blob([dataStr], { type: "application/json" });
@@ -106,7 +100,7 @@ function exportToJsonFile() {
   URL.revokeObjectURL(url);
 }
 
-// Import quotes
+// Import quotes from JSON file
 function importFromJsonFile(event) {
   const fileReader = new FileReader();
   fileReader.onload = function (event) {
@@ -134,40 +128,42 @@ async function fetchQuotesFromServer() {
     const response = await fetch("https://jsonplaceholder.typicode.com/posts");
     const serverData = await response.json();
 
-    // Simulate quotes with "title" as text
     const serverQuotes = serverData.slice(0, 5).map((post) => ({
       id: post.id,
       text: post.title,
       category: "Server",
     }));
 
-    // Conflict resolution: server takes precedence
+    let conflicts = [];
     serverQuotes.forEach((serverQuote) => {
-      const exists = quotes.find((q) => q.id === serverQuote.id);
-      if (!exists) {
+      const local = quotes.find((q) => q.id === serverQuote.id);
+      if (!local) {
         quotes.push(serverQuote);
-      } else {
-        // Overwrite local version with server version
-        Object.assign(exists, serverQuote);
+      } else if (local.text !== serverQuote.text) {
+        Object.assign(local, serverQuote); // server takes precedence
+        conflicts.push(serverQuote.text);
       }
     });
+
+    if (conflicts.length) {
+      alert("⚠️ Conflict resolved with server data for: " + conflicts.join(", "));
+    }
 
     saveQuotes();
     displayQuotes();
     populateCategories();
-    console.log("✅ Synced with server");
   } catch (error) {
     console.error("Error fetching from server:", error);
   }
 }
 
-// Sync a new quote to server (simulation)
+// ✅ Sync new quote to server (simulation)
 async function syncQuoteToServer(quote) {
   try {
     await fetch("https://jsonplaceholder.typicode.com/posts", {
       method: "POST",
+      headers: { "Content-Type": "application/json; charset=UTF-8" }, // ✅ Correct capitalization
       body: JSON.stringify(quote),
-      headers: { "Content-type": "application/json; charset=UTF-8" },
     });
     console.log("✅ Quote synced to server:", quote);
   } catch (error) {
