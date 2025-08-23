@@ -11,7 +11,7 @@ window.onload = async function () {
   // Build dynamic UI
   createAddQuoteForm();
   createFilterDropdown();
-  createQuoteContainer();
+  // No need to create quote container dynamically anymore
   createRandomQuoteButton();
 
   displayQuotes();
@@ -83,18 +83,6 @@ function createFilterDropdown() {
   container.appendChild(select);
 }
 
-function createQuoteContainer() {
-  const container = document.getElementById("appContainer");
-
-  const h2 = document.createElement("h2");
-  h2.textContent = "Quotes";
-  container.appendChild(h2);
-
-  const quoteContainer = document.createElement("div");
-  quoteContainer.id = "quoteContainer";
-  container.appendChild(quoteContainer);
-}
-
 function createRandomQuoteButton() {
   const container = document.getElementById("appContainer");
   const btn = document.createElement("button");
@@ -111,7 +99,7 @@ function saveQuotes() {
 }
 
 function displayQuotes(filteredList = quotes) {
-  const container = document.getElementById("quoteContainer");
+  const container = document.getElementById("quoteDisplay"); // Now uses quoteDisplay
   container.innerHTML = "";
 
   filteredList.forEach(q => {
