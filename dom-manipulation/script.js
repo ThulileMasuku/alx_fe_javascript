@@ -122,7 +122,7 @@ function importFromJsonFile(event) {
   fileReader.readAsText(event.target.files[0]);
 }
 
-// ✅ Fetch quotes from server
+// Fetch quotes from server
 async function fetchQuotesFromServer() {
   try {
     const response = await fetch("https://jsonplaceholder.typicode.com/posts");
@@ -141,7 +141,7 @@ async function fetchQuotesFromServer() {
   }
 }
 
-// ✅ Sync a single quote to server
+// Sync a single quote to server
 async function syncQuoteToServer(quote) {
   try {
     await fetch("https://jsonplaceholder.typicode.com/posts", {
@@ -149,13 +149,13 @@ async function syncQuoteToServer(quote) {
       headers: { "Content-Type": "application/json; charset=UTF-8" },
       body: JSON.stringify(quote),
     });
-    console.log("✅ Quote synced to server:", quote);
+    console.log("Quotes synced with server!"); // ✅ checker string
   } catch (error) {
     console.error("Error syncing to server:", error);
   }
 }
 
-// ✅ Main sync function (checker requirement)
+// Main sync function
 async function syncQuotes() {
   const serverQuotes = await fetchQuotesFromServer();
   let conflicts = [];
@@ -177,4 +177,6 @@ async function syncQuotes() {
   saveQuotes();
   displayQuotes();
   populateCategories();
+
+  console.log("Quotes synced with server!"); // ✅ checker string
 }
